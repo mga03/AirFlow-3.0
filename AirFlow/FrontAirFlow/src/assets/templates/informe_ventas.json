@@ -1,0 +1,10 @@
+{
+  "reportName": "informe_ventas",
+  "description": "Formulario para generar informe de ventas",
+  "fields": [
+    { "name": "fecha_inicio", "label": "Fecha de iniciosoiioioio", "type": "date" },
+    { "name": "fecha_fin", "label": "Fecha de fin", "type": "date" },
+    { "name": "region", "label": "Región", "type": "select", "options": ["Norte", "Sur", "Este", "Oeste"] },
+    { "name": "top_n", "label": "Top N productos", "type": "number" }
+  ]
+}

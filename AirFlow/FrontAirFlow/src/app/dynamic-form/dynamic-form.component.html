@@ -1,0 +1,89 @@
+<h2 *ngIf="template">{{ template.description }}</h2>
+
+<form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="material-form">
+
+  <div *ngFor="let field of template.fields" class="form-field">
+
+    <ng-container [ngSwitch]="field.type">
+
+      <!-- STRING -->
+      <mat-form-field *ngSwitchCase="'string'" appearance="fill" class="full-width">
+        <mat-label>{{ field.label }}</mat-label>
+        <input matInput type="text" [formControlName]="field.name" />
+      </mat-form-field>
+
+      <!-- NUMBER -->
+      <mat-form-field *ngSwitchCase="'number'" appearance="fill" class="full-width">
+        <mat-label>{{ field.label }}</mat-label>
+        <input matInput type="number" [formControlName]="field.name" />
+      </mat-form-field>
+
+      <!-- DATE (usa input nativo, no mat-datepicker) -->
+      <mat-form-field *ngSwitchCase="'date'" appearance="fill" class="full-width">
+        <mat-label>{{ field.label }}</mat-label>
+        <input matInput type="date" [formControlName]="field.name" />
+      </mat-form-field>
+
+      <!-- BOOLEAN -->
+      <mat-checkbox *ngSwitchCase="'boolean'" [formControlName]="field.name">
+        {{ field.label }}
+      </mat-checkbox>
+
+      <!-- SELECT -->
+      <mat-form-field *ngSwitchCase="'select'" appearance="fill" class="full-width">
+        <mat-label>{{ field.label }}</mat-label>
+        <mat-select [formControlName]="field.name">
+          <mat-option *ngFor="let opt of field.options" [value]="opt">{{ opt }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+    </ng-container>
+
+  </div>
+
+  <button mat-raised-button color="primary" type="submit">Enviar</button>
+</form>
+
+<section *ngIf="executions?.length" class="executions-list">
+  <h3>Ejecuciones recientes</h3>
+  <div class="executions-container">
+    <div *ngFor="let exec of executions" class="execution-card">
+      <div class="execution-header">
+        <strong>#{{ exec.id }}</strong>
+        <span class="execution-status" [ngClass]="'status-' + exec.status">
+          {{ exec.status | uppercase }}
+        </span>
+        <span class="execution-date">{{ exec.createdAt | date:'short' }}</span>
+      </div>
+
+      <div class="execution-details">
+        <p><strong>DAG:</strong> {{ exec.dagId }}</p>
+        <p><strong>Airflow Run ID:</strong> <code>{{ exec.dagRunId }}</code></p>
+        <p *ngIf="exec.completedAt"><strong>Completado:</strong> {{ exec.completedAt | date:'short' }}</p>
+      </div>
+
+      <div class="execution-parameters">
+        <strong>Parámetros:</strong>
+        <pre>{{ exec.parameters | json }}</pre>
+      </div>
+
+      <div *ngIf="exec.result" class="execution-result">
+        <strong>Resultado:</strong>
+        <pre>{{ exec.result | json }}</pre>
+      </div>
+
+      <div class="execution-actions">
+        <button *ngIf="exec.status === 'queued' || exec.status === 'running'" 
+                mat-button color="accent" (click)="viewMonitor(exec.id)">
+          Ver Monitor
+        </button>
+        <button mat-button color="primary" (click)="viewDetails(exec.id)">
+          Ver Detalles
+        </button>
+        <button mat-button color="warn" (click)="deleteExecution(exec.id)">
+          Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

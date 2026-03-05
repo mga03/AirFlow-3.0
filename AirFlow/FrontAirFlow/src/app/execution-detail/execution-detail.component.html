@@ -1,0 +1,174 @@
+<div class="execution-detail-container">
+  <!-- LOADING STATE -->
+  <div *ngIf="loading" class="loading">
+    Cargando ejecución...
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div *ngIf="!loading && execution" class="execution-detail">
+    <!-- HEADER -->
+    <div class="detail-header">
+      <button mat-icon-button (click)="goBack()" class="back-button">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <div class="header-content">
+        <h1>Ejecución #{{ execution.id }}</h1>
+        <div class="header-status">
+          <span class="status-badge" [ngClass]="'status-' + execution.status">
+            {{ execution.status | uppercase }}
+          </span>
+          <p class="status-text">{{ getStatusDescription(execution.status) }}</p>
+        </div>
+      </div>
+      <button 
+        *ngIf="execution.status === 'queued' || execution.status === 'running'"
+        mat-raised-button color="primary" 
+        [disabled]="synchronizing"
+        (click)="syncStatus()"
+        class="sync-button">
+        {{ synchronizing ? 'Sincronizando...' : 'Sincronizar' }}
+      </button>
+    </div>
+
+    <p *ngIf="syncMessage" class="sync-message" [ngClass]="syncMessage.includes('✓') ? 'success' : 'error'">
+      {{ syncMessage }}
+    </p>
+
+    <!-- TIMELINE -->
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-marker">📅</div>
+        <div class="timeline-content">
+          <strong>Creado:</strong> {{ execution.createdAt | date:'medium' }} ({{ getAge() }})
+        </div>
+      </div>
+
+      <div *ngIf="execution.startedAt" class="timeline-item">
+        <div class="timeline-marker">🏃</div>
+        <div class="timeline-content">
+          <strong>Iniciado:</strong> {{ execution.startedAt | date:'medium' }}
+        </div>
+      </div>
+
+      <div *ngIf="execution.completedAt" class="timeline-item">
+        <div class="timeline-marker">✅</div>
+        <div class="timeline-content">
+          <strong>Completado:</strong> {{ execution.completedAt | date:'medium' }}
+          <span *ngIf="execution.startedAt" class="duration">(Duración: {{ getDuration() }})</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXECUTION INFO GRID -->
+    <div class="info-grid">
+      <div class="info-card">
+        <label>DAG ID</label>
+        <div class="info-value">
+          <code>{{ execution.dagId }}</code>
+          <button mat-icon-button (click)="copyToClipboard(execution.dagId, 'dagId')" class="copy-btn">
+            <span class="material-icons">{{ copyMessage['dagId'] ? 'check' : 'content_copy' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <label>Airflow Run ID</label>
+        <div class="info-value">
+          <code>{{ execution.dagRunId }}</code>
+          <button mat-icon-button (click)="copyToClipboard(execution.dagRunId, 'dagRunId')" class="copy-btn">
+            <span class="material-icons">{{ copyMessage['dagRunId'] ? 'check' : 'content_copy' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="info-card" *ngIf="execution.status === 'success' || execution.status === 'failed'">
+        <label>Última sincronización</label>
+        <div class="info-value">
+          <span>{{ execution.updatedAt | date:'medium' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTIONS -->
+    <div class="sections">
+      <!-- PARAMETERS SECTION -->
+      <div class="section">
+        <div class="section-header" (click)="activeSection = 'parameters'">
+          <h2>Parámetros de entrada</h2>
+          <span class="toggle-icon">
+            {{ activeSection === 'parameters' ? '▼' : '▶' }}
+          </span>
+        </div>
+        <div *ngIf="activeSection === 'parameters'" class="section-content">
+          <div *ngIf="execution.parameters && Object.keys(execution.parameters).length > 0" class="params-table">
+            <div class="param-row header">
+              <div class="param-key">Parámetro</div>
+              <div class="param-value">Valor</div>
+            </div>
+            <div *ngFor="let key of Object.keys(execution.parameters)" class="param-row">
+              <div class="param-key">{{ key }}</div>
+              <div class="param-value">
+                <code>{{ execution.parameters[key] | json }}</code>
+              </div>
+            </div>
+          </div>
+          <p *ngIf="!execution.parameters || Object.keys(execution.parameters).length === 0" class="empty-message">
+            No hay parámetros
+          </p>
+        </div>
+      </div>
+
+      <!-- RESULT SECTION -->
+      <div class="section">
+        <div class="section-header" (click)="activeSection = 'result'">
+          <h2>Resultado</h2>
+          <span class="toggle-icon">
+            {{ activeSection === 'result' ? '▼' : '▶' }}
+          </span>
+        </div>
+        <div *ngIf="activeSection === 'result'" class="section-content">
+          <div *ngIf="execution.result" class="result-json">
+            <pre [ngClass]="{ 'large-json': isLargeJson(execution.result) }">{{ execution.result | json }}</pre>
+            <button mat-button color="primary" (click)="copyToClipboard(JSON.stringify(execution.result), 'result')" class="copy-full-btn">
+              <span class="material-icons">content_copy</span>
+              {{ copyMessage['result'] ? 'Copiado' : 'Copiar resultado' }}
+            </button>
+          </div>
+          <p *ngIf="!execution.result" class="empty-message">
+            No hay resultado disponible ({{ execution.status === 'running' ? 'en progreso' : execution.status === 'queued' ? 'no iniciada' : '' }})
+          </p>
+        </div>
+      </div>
+
+      <!-- LOGS SECTION -->
+      <div class="section">
+        <div class="section-header" (click)="activeSection = 'logs'">
+          <h2>Logs</h2>
+          <span class="toggle-icon">
+            {{ activeSection === 'logs' ? '▼' : '▶' }}
+          </span>
+        </div>
+        <div *ngIf="activeSection === 'logs'" class="section-content">
+          <div *ngIf="execution.logs" class="logs-container">
+            <pre class="logs-content">{{ execution.logs }}</pre>
+            <button mat-raised-button color="accent" (click)="downloadLogs()" class="download-btn">
+              <span class="material-icons">download</span>
+              Descargar logs (.txt)
+            </button>
+          </div>
+          <p *ngIf="!execution.logs" class="empty-message">
+            No hay logs disponibles ({{ execution.status === 'running' ? 'en progreso' : execution.status === 'queued' ? 'no iniciada' : '' }})
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="actions">
+      <button mat-raised-button (click)="goBack()">
+        <span class="material-icons">list</span>
+        Volver al Historial
+      </button>
+    </div>
+  </div>
+</div>

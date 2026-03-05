@@ -1,0 +1,27 @@
+{
+    "name": "reporte_usuarios",
+    "reportName": "reporte_usuarios",
+    "description": "Formulario para generar reporte de usuarios",
+    "fields": [
+        {
+            "name": "fecha_desde",
+            "label": "Desde fecha",
+            "type": "date"
+        },
+        {
+            "name": "estado",
+            "label": "Estado del usuario",
+            "type": "select",
+            "options": [
+                "Activo",
+                "Inactivo",
+                "Suspendido"
+            ]
+        },
+        {
+            "name": "incluir_detalle",
+            "label": "Incluir detalle",
+            "type": "boolean"
+        }
+    ]
+}
