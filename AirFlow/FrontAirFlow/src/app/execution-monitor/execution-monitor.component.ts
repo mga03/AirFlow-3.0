@@ -59,348 +59,293 @@ interface Execution {
 @Component({
   selector: 'app-execution-monitor',
   template: `
-    <div class="monitor-container">
-      <div class="header">
-        <button mat-icon-button (click)="goBack()" class="back-button">
-          ← Volver
-        </button>
-        <h1>Monitor de Ejecución #{{ executionId }}</h1>
-        <button
-          mat-raised-button
-          color="primary"
-          (click)="refreshNow()"
-          [disabled]="loading"
-          class="refresh-button"
-        >
-          Actualizar
-        </button>
-      </div>
-
-      <div *ngIf="loading && !execution" class="loading">
-        <p>Cargando ejecución...</p>
-      </div>
-
-      <div *ngIf="error" class="error-message">
-        <p>{{ error }}</p>
-        <button mat-raised-button (click)="loadExecution()">Reintentar</button>
-      </div>
-
-      <div *ngIf="execution" class="execution-details">
-        <!-- Estado y Progreso -->
-        <div class="status-section">
-          <div class="status-card">
-            <h2>Estado Actual</h2>
-            <span class="status-badge" [ngClass]="'status-' + execution.status">
-              {{ execution.status }}
-            </span>
-            <div class="progress-bar-container">
-              <div
-                class="progress-bar"
-                [style.width.%]="getProgress()"
-                [ngClass]="'progress-' + execution.status"
-              ></div>
-            </div>
-            <p class="progress-text">{{ getProgressText() }}</p>
-          </div>
-
-          <!-- Información de Tiempos -->
-          <div class="info-section">
-            <h3>Información de Ejecución</h3>
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="label">DAG ID:</span>
-                <span class="value">{{ execution.dagId }}</span>
-              </div>
-              <div class="info-item">
-                <span class="label">DAG Run ID:</span>
-                <span class="value code">{{ execution.dagRunId }}</span>
-              </div>
-              <div class="info-item">
-                <span class="label">Creado:</span>
-                <span class="value">{{ execution.createdAt | date: 'medium' }}</span>
-              </div>
-              <div class="info-item" *ngIf="execution.startedAt">
-                <span class="label">Iniciado:</span>
-                <span class="value">{{ execution.startedAt | date: 'medium' }}</span>
-              </div>
-              <div class="info-item" *ngIf="execution.completedAt">
-                <span class="label">Completado:</span>
-                <span class="value">{{ execution.completedAt | date: 'medium' }}</span>
-              </div>
-              <div class="info-item" *ngIf="execution.startedAt && execution.completedAt">
-                <span class="label">Duración:</span>
-                <span class="value">{{ getDuration() }}</span>
-              </div>
+    <div class="monitor-wrapper animate-up">
+      <header class="monitor-header">
+        <div class="header-left">
+          <button mat-icon-button (click)="goBack()" class="back-btn" matTooltip="Volver al Historial">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+          <div class="title-group">
+            <h1>Monitor de Ejecución <span class="hash-id">#{{ executionId }}</span></h1>
+            <div *ngIf="execution && isPolling" class="poll-status">
+              <span class="pulse-dot"></span>
+              Sincronizando en tiempo real...
             </div>
           </div>
         </div>
-
-        <!-- Parámetros -->
-        <div class="section">
-          <h3>Parámetros de Entrada</h3>
-          <pre class="json-display">{{ execution.parameters | json }}</pre>
-        </div>
-
-        <!-- Resultado -->
-        <div class="section" *ngIf="execution.result">
-          <h3>Resultado</h3>
-          <pre class="json-display">{{ execution.result | json }}</pre>
-        </div>
-
-        <!-- Logs -->
-        <div class="section logs-section">
-          <h3>Logs de Ejecución</h3>
-          <div class="logs-container">
-            <pre class="logs">{{ execution.logs || 'Sin logs disponibles' }}</pre>
-          </div>
-          <button
-            mat-button
-            (click)="downloadLogs()"
-            *ngIf="execution.logs"
-            class="download-btn"
-          >
-             Descargar Logs
+        
+        <div class="header-actions">
+          <button mat-raised-button color="primary" (click)="refreshNow()" [disabled]="loading" class="refresh-btn">
+            <mat-icon [class.rotating]="loading">refresh</mat-icon>
+            Actualizar manual
           </button>
         </div>
+      </header>
+
+      <div *ngIf="loading && !execution" class="state-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Estableciendo conexión con el orquestador...</p>
       </div>
 
-      <!-- Auto-refresh info -->
-      <div *ngIf="execution && isPolling" class="auto-refresh-info">
-        Actualizando estado automáticamente
-        <span class="polling-indicator">●</span>
+      <div *ngIf="error" class="state-container error">
+        <mat-icon>report_problem</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-stroked-button color="warn" (click)="loadExecution()">Reintentar conexión</button>
+      </div>
+
+      <div *ngIf="execution" class="monitor-grid">
+        <!-- Dashboard de Estado -->
+        <div class="status-grid">
+          <div class="premium-card status-main">
+            <div class="card-header">
+              <h3>Estado del Proceso</h3>
+              <span class="status-pill" [ngClass]="'status-' + execution.status">
+                {{ execution.status }}
+              </span>
+            </div>
+            
+            <div class="progress-container">
+              <div class="progress-details">
+                <span class="pct">{{ getProgress() }}%</span>
+                <span class="txt">{{ getProgressText() }}</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" 
+                     [style.width.%]="getProgress()" 
+                     [ngClass]="'fill-' + execution.status">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="premium-card info-panel">
+            <h3>Metadatos del Trabajo</h3>
+            <div class="meta-list">
+              <div class="meta-item">
+                <span class="label">Identificador DAG</span>
+                <span class="value"><code>{{ execution.dagId }}</code></span>
+              </div>
+              <div class="meta-item">
+                <span class="label">Airflow Run ID</span>
+                <span class="value code-val">{{ execution.dagRunId | slice:0:24 }}...</span>
+              </div>
+              <div class="meta-item" *ngIf="execution.startedAt">
+                <span class="label">Desde Inicio</span>
+                <span class="value">{{ execution.startedAt | date: 'HH:mm:ss' }}</span>
+              </div>
+              <div class="meta-item" *ngIf="execution.startedAt && execution.completedAt">
+                <span class="label">Tiempo Total</span>
+                <span class="value highlight">{{ getDuration() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Consola de Logs -->
+        <div class="premium-card console-card">
+          <div class="console-header">
+            <div class="c-title">
+              <mat-icon>terminal</mat-icon>
+              <h3>Salida Estándar (Logs)</h3>
+            </div>
+            <button mat-button color="accent" (click)="downloadLogs()" *ngIf="execution.logs">
+              <mat-icon>download</mat-icon> Descargar Registro
+            </button>
+          </div>
+          
+          <div class="console-body" #scrollContainer>
+            <pre class="terminal-text">{{ execution.logs || '> Esperando salida del proceso...' }}</pre>
+          </div>
+        </div>
+
+        <!-- Parámetros de Configuración (Compacto) -->
+        <div class="premium-card params-card">
+          <h3>Configuración de Lanzamiento</h3>
+          <pre class="params-json">{{ execution.parameters | json }}</pre>
+        </div>
       </div>
     </div>
   `,
   styles: [`
-    .monitor-container {
-      padding: 2rem;
-      max-width: 1000px;
+    .monitor-wrapper {
+      padding: 3rem 2rem;
+      max-width: 1300px;
       margin: 0 auto;
     }
 
-    .header {
+    .monitor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+
+    .back-btn { background: var(--bg-card); border: 1px solid var(--border-color); }
+
+    .title-group h1 {
+      font-size: 2rem;
+      margin: 0 0 0.5rem;
+      color: var(--secondary);
+    }
+
+    .hash-id { color: var(--primary); font-family: monospace; }
+
+    .poll-status {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 600;
     }
 
-    .header h1 {
-      flex: 1;
-      margin: 0;
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse-sm 2s infinite;
     }
 
-    .loading, .error-message {
-      text-align: center;
-      padding: 2rem;
-      font-size: 16px;
+    @keyframes pulse-sm {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 93, 227, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(79, 93, 227, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 93, 227, 0); }
     }
 
-    .error-message {
-      color: #d32f2f;
-      background-color: #ffebee;
-      border-radius: 4px;
+    .rotating { animation: spin 2s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .state-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 6rem;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      gap: 2rem;
     }
 
-    .execution-details {
+    .monitor-grid {
       display: flex;
       flex-direction: column;
       gap: 2rem;
     }
 
-    .status-section {
+    .status-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 350px;
       gap: 2rem;
     }
 
-    .status-card {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      text-align: center;
+    .status-main { padding: 2.5rem; }
+
+    .status-main .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
     }
 
-    .status-card h2 {
-      margin-top: 0;
-      color: #666;
-      font-size: 14px;
+    .status-main h3 { margin: 0; color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+
+    .progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .progress-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .pct { font-size: 3rem; font-weight: 800; color: var(--secondary); }
+    .txt { font-size: 1.1rem; color: var(--text-muted); font-weight: 500; }
+
+    .progress-track {
+      height: 12px;
+      background: var(--bg-main);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .progress-fill { height: 100%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+    .fill-queued { background: var(--warning); }
+    .fill-running { background: var(--accent); }
+    .fill-success { background: var(--success); }
+    .fill-failed { background: var(--danger); }
+
+    .info-panel { padding: 2rem; }
+    .info-panel h3 { margin-bottom: 1.5rem; font-size: 1rem; }
+
+    .meta-list { display: flex; flex-direction: column; gap: 1rem; }
+    .meta-item { display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--bg-main); padding-bottom: 0.5rem; }
+    .meta-item:last-child { border: none; }
+    .meta-item .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+    .meta-item .value { font-size: 0.9rem; font-weight: 600; color: var(--secondary); }
+    .meta-item code { background: var(--bg-main); padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; }
+    .code-val { font-family: monospace; color: var(--primary); }
+    .highlight { color: var(--primary) !important; }
+
+    /* Console */
+    .console-card { background: #0f172a; border-color: #1e293b; color: #e2e8f0; padding: 0; overflow: hidden; }
+    
+    .console-header {
+      padding: 1rem 1.5rem;
+      background: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+
+    .c-title { display: flex; align-items: center; gap: 10px; }
+    .c-title mat-icon { font-size: 18px; width: 18px; height: 18px; color: #64748b; }
+    .c-title h3 { margin: 0; font-size: 0.9rem; color: #94a3b8; }
+
+    .console-body {
+      padding: 1.5rem;
+      max-height: 500px;
+      overflow-y: auto;
+      background: #0f172a;
+    }
+
+    .terminal-text {
+      margin: 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+    }
+
+    .params-card { padding: 1.5rem; }
+    .params-json { background: var(--bg-main); padding: 1rem; border-radius: 8px; font-size: 0.8rem; margin: 1rem 0 0; }
+
+    .status-pill {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .status-badge {
-      display: inline-block;
-      padding: 0.75rem 1.5rem;
-      border-radius: 20px;
-      color: white;
-      font-weight: bold;
-      font-size: 18px;
-      margin: 1rem 0;
-    }
+    .status-success { background: #1a4731; color: #4ade80; }
+    .status-failed { background: #471a1a; color: #f87171; }
+    .status-running { background: #1e293b; color: #60a5fa; }
+    .status-queued { background: #422006; color: #facc15; }
 
-    .status-queued { background: #ff9800; }
-    .status-running { background: #2196f3; }
-    .status-success { background: #4caf50; }
-    .status-failed { background: #f44336; }
-
-    .progress-bar-container {
-      width: 100%;
-      height: 8px;
-      background: #eee;
-      border-radius: 4px;
-      margin: 1.5rem 0;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 100%;
-      transition: width 0.3s ease;
-      border-radius: 4px;
-    }
-
-    .progress-queued { background: #ff9800; }
-    .progress-running { background: #2196f3; }
-    .progress-success { background: #4caf50; }
-    .progress-failed { background: #f44336; }
-
-    .progress-text {
-      font-size: 12px;
-      color: #666;
-      margin: 0;
-    }
-
-    .info-section {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .info-section h3 {
-      margin-top: 0;
-      color: #333;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1rem;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      padding: 0.75rem;
-      background: #fafafa;
-      border-radius: 4px;
-    }
-
-    .info-item .label {
-      font-weight: bold;
-      color: #666;
-      font-size: 12px;
-      text-transform: uppercase;
-      margin-bottom: 0.25rem;
-    }
-
-    .info-item .value {
-      color: #333;
-      font-size: 14px;
-      word-break: break-all;
-    }
-
-    .info-item .code {
-      font-family: monospace;
-      background: #eee;
-      padding: 0.25rem 0.5rem;
-      border-radius: 2px;
-    }
-
-    .section {
-      background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .section h3 {
-      margin-top: 0;
-      color: #333;
-    }
-
-    .json-display {
-      background: #f5f5f5;
-      padding: 1rem;
-      border-radius: 4px;
-      font-size: 12px;
-      overflow-x: auto;
-      margin: 1rem 0 0 0;
-    }
-
-    .logs-section {
-      margin-bottom: 3rem;
-    }
-
-    .logs-container {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 1rem;
-      border-radius: 4px;
-      max-height: 400px;
-      overflow-y: auto;
-      margin: 1rem 0;
-    }
-
-    .logs {
-      margin: 0;
-      font-size: 12px;
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .download-btn {
-      margin-top: 1rem;
-    }
-
-    .auto-refresh-info {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: #2196f3;
-      color: white;
-      padding: 1rem;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 14px;
-    }
-
-    .polling-indicator {
-      display: inline-block;
-      color: #4caf50;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-
-    @media (max-width: 768px) {
-      .status-section {
-        grid-template-columns: 1fr;
-      }
-
-      .auto-refresh-info {
-        bottom: auto;
-        right: auto;
-        position: static;
-        margin-top: 1rem;
-      }
+    @media (max-width: 1024px) {
+      .status-grid { grid-template-columns: 1fr; }
     }
   `]
 })

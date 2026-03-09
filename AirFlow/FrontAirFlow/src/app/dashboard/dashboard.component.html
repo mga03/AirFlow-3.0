@@ -1,122 +1,158 @@
-<div class="dashboard-container">
+<div class="dashboard-wrapper animate-up">
   <!-- HEADER -->
-  <div class="dashboard-header">
-    <h1>Panel de Control</h1>
-    <p>Bienvenido a AirFlow Orchestration Dashboard</p>
-  </div>
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Panel de Control</h1>
+      <p>Bienvenido al Centro de Orquestación Digital</p>
+    </div>
+    <div class="header-badges">
+      <span class="badge online">Sistema Online</span>
+      <span class="badge version">v3.0.1</span>
+    </div>
+  </header>
 
   <!-- QUICK ACTIONS -->
-  <div class="quick-actions">
-    <button mat-raised-button color="primary" (click)="navigateToCreateReport()" class="action-button">
-      <span class="material-icons">add_circle</span>
-      <div class="button-content">
-        <strong>Crear Informe</strong>
-        <span>Ejecutar un nuevo análisis</span>
+  <section class="quick-actions-section">
+    <div class="section-title">
+      <mat-icon>bolt</mat-icon>
+      <h2>Acciones Rápidas</h2>
+    </div>
+    <div class="actions-grid">
+      <div class="action-card primary" (click)="navigateToCreateReport()">
+        <div class="action-icon">
+          <mat-icon>add_task</mat-icon>
+        </div>
+        <div class="action-info">
+          <h3>Ejecutar Informe</h3>
+          <p>Configura y lanza un nuevo proceso de análisis distribuido</p>
+        </div>
+        <mat-icon class="arrow">chevron_right</mat-icon>
       </div>
-    </button>
 
-    <button mat-raised-button color="accent" (click)="navigateToHistory()" class="action-button">
-      <span class="material-icons">history</span>
-      <div class="button-content">
-        <strong>Ver Historial</strong>
-        <span>Todas ejecutadas</span>
+      <div class="action-card accent" (click)="navigateToHistory()">
+        <div class="action-icon">
+          <mat-icon>history_toggle_off</mat-icon>
+        </div>
+        <div class="action-info">
+          <h3>Historial Global</h3>
+          <p>Consulta el registro completo de ejecuciones y sus logs</p>
+        </div>
+        <mat-icon class="arrow">chevron_right</mat-icon>
       </div>
-    </button>
-  </div>
+    </div>
+  </section>
 
   <!-- STATS CARDS -->
-  <div class="stats-section">
-    <h2>Estadísticas</h2>
+  <section class="stats-section">
+    <div class="section-header">
+      <div class="section-title">
+        <mat-icon>analytics</mat-icon>
+        <h2>Estado de la Infraestructura</h2>
+      </div>
+    </div>
     <div class="stats-grid">
-      <mat-card class="stat-card total">
-        <div class="stat-value">{{ stats.total }}</div>
-        <div class="stat-label">Total</div>
-      </mat-card>
-
-      <mat-card class="stat-card queued">
-        <div class="stat-value">{{ stats.queued }}</div>
-        <div class="stat-label">En Cola</div>
-      </mat-card>
-
-      <mat-card class="stat-card running">
-        <div class="stat-value">{{ stats.running }}</div>
-        <div class="stat-label">En Progreso</div>
-      </mat-card>
-
-      <mat-card class="stat-card success">
-        <div class="stat-value">{{ stats.success }}</div>
-        <div class="stat-label">Éxito</div>
-        <div class="stat-percentage">{{ getSuccessPercentage() }}%</div>
-      </mat-card>
-
-      <mat-card class="stat-card failed">
-        <div class="stat-value">{{ stats.failed }}</div>
-        <div class="stat-label">Fallos</div>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- TEMPLATES SECTION -->
-  <div *ngIf="templates?.length > 0" class="templates-section">
-    <h2>Templates Disponibles</h2>
-    <div class="templates-grid">
-      <mat-card *ngFor="let template of templates" class="template-card" (click)="navigateToTemplate(template._id || template.name)">
-        <mat-card-header>
-          <div mat-card-avatar class="template-avatar">DOC</div>
-          <mat-card-title>{{ template.name || template.reportName }}</mat-card-title>
-          <mat-card-subtitle>{{ template.fields?.length || 0 }} parámetros</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <p>{{ template.description || 'Sin descripción' }}</p>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-button color="primary">Usar Template</button>
-        </mat-card-actions>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- RECENT EXECUTIONS -->
-  <div *ngIf="recentExecutions?.length > 0" class="recent-section">
-    <h2>Ejecuciones Recientes</h2>
-    <div class="executions-table">
-      <div class="table-header">
-        <div class="col-id">ID</div>
-        <div class="col-dag">DAG</div>
-        <div class="col-status">Estado</div>
-        <div class="col-created">Creado</div>
-        <div class="col-actions">Acciones</div>
+      <div class="premium-stat total">
+        <div class="stat-main">
+          <span class="value">{{ stats.total }}</span>
+          <span class="label">Peticiones Totales</span>
+        </div>
+        <div class="stat-footer">Histórico acumulado</div>
       </div>
-      <div *ngFor="let execution of recentExecutions" class="table-row">
-        <div class="col-id">{{ execution.id }}</div>
-        <div class="col-dag">{{ execution.dagId }}</div>
-        <div class="col-status">
-          <span class="status-badge" [ngClass]="'status-' + execution.status">
-            {{ execution.status | uppercase }}
-          </span>
+
+      <div class="premium-stat queued">
+        <div class="stat-main">
+          <span class="value">{{ stats.queued }}</span>
+          <span class="label">En Cola</span>
         </div>
-        <div class="col-created">{{ execution.createdAt | date:'short' }}</div>
-        <div class="col-actions">
-          <button *ngIf="execution.status === 'queued' || execution.status === 'running'"
-                  mat-icon-button (click)="navigateToMonitor(execution.id)" matTooltip="Monitor"
-                  color="primary">
-            <span class="material-icons">play_circle</span>
-          </button>
-          <button mat-icon-button color="accent" matTooltip="Detalles">
-            <span class="material-icons">info</span>
-          </button>
+        <div class="stat-progress" [style.width.%]="(stats.queued / stats.total) * 100"></div>
+      </div>
+
+      <div class="premium-stat running">
+        <div class="stat-main">
+          <span class="value">{{ stats.running }}</span>
+          <span class="label">Procesando</span>
         </div>
+        <div class="pulse-indicator"></div>
+      </div>
+
+      <div class="premium-stat success">
+        <div class="stat-main">
+          <span class="value">{{ stats.success }}</span>
+          <span class="label">Finalizados OK</span>
+        </div>
+        <div class="percentage-badge">{{ getSuccessPercentage() }}% Tasa Éxito</div>
+      </div>
+
+      <div class="premium-stat failed">
+        <div class="stat-main">
+          <span class="value">{{ stats.failed }}</span>
+          <span class="label">Alertas/Fallos</span>
+        </div>
+        <mat-icon class="alert-icon">warning</mat-icon>
       </div>
     </div>
+  </section>
+
+  <!-- RECENT ACTIVITY AND TEMPLATES -->
+  <div class="dashboard-grid">
+    <!-- TEMPLATES SECTION -->
+    <section class="content-card templates-section" *ngIf="templates?.length > 0">
+      <div class="card-header">
+        <h3>Plantillas Destacadas</h3>
+        <button mat-button color="primary" (click)="navigateToCreateReport()">Ver Todas</button>
+      </div>
+      <div class="templates-list">
+        <div *ngFor="let template of templates | slice:0:3" class="compact-template-row"
+          (click)="navigateToTemplate(template._id || template.name)">
+          <div class="template-icon-small">
+            <mat-icon>description</mat-icon>
+          </div>
+          <div class="template-text">
+            <strong>{{ template.reportName || template.name }}</strong>
+            <span>{{ template.fields?.length || 0 }} parámetros requeridos</span>
+          </div>
+          <button mat-icon-button><mat-icon>play_arrow</mat-icon></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECENT EXECUTIONS -->
+    <section class="content-card activity-section" *ngIf="recentExecutions?.length > 0">
+      <div class="card-header">
+        <h3>Actividad Reciente</h3>
+        <button mat-button color="primary" (click)="navigateToHistory()">Historial Completo</button>
+      </div>
+      <div class="activity-feed">
+        <div *ngFor="let execution of recentExecutions | slice:0:5" class="feed-item">
+          <div class="status-dot" [ngClass]="'status-' + execution.status"></div>
+          <div class="feed-content">
+            <div class="feed-header">
+              <span class="execution-id">EXEC-#{{ execution.id }}</span>
+              <span class="execution-time">{{ execution.createdAt | date:'shortTime' }}</span>
+            </div>
+            <div class="feed-body">
+              <strong>{{ execution.dagId }}</strong>
+              <span class="status-label" [ngClass]="'status-' + execution.status">{{ execution.status }}</span>
+            </div>
+          </div>
+          <div class="feed-actions">
+            <button mat-icon-button (click)="navigateToMonitor(execution.id)"
+              *ngIf="execution.status === 'running' || execution.status === 'queued'">
+              <mat-icon color="primary">visibility</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- EMPTY STATE -->
-  <div *ngIf="!loading && recentExecutions?.length === 0 && templates?.length === 0" class="empty-state">
-    <div class="empty-icon">INFO</div>
-    <h3>Sin datos</h3>
-    <p>No hay templates ni ejecuciones disponibles</p>
+  <div *ngIf="!loading && recentExecutions?.length === 0 && templates?.length === 0" class="empty-dashboard">
+    <mat-icon>cloud_off</mat-icon>
+    <h3>Sistema Inicializado</h3>
+    <p>No se han detectado plantillas ni procesos activos. Comience configurando su primer flujo.</p>
     <button mat-raised-button color="primary" (click)="navigateToCreateReport()">
-      Crear Primera Ejecución
+      CREAR PRIMERA PLANTILLA
     </button>
   </div>
 </div>

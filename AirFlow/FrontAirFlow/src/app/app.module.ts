@@ -25,6 +25,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -113,6 +114,7 @@ const routes: Routes = [
     MatTableModule,
     MatIconModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     MatChipsModule,
     MatTooltipModule,
     BrowserModule,
@@ -124,5 +126,5 @@ const routes: Routes = [
   exports: [RouterModule],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }
 

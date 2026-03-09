@@ -1,63 +1,99 @@
-/* styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: hsl(230, 85%, 60%);
+  --primary-dark: hsl(230, 85%, 50%);
+  --secondary: hsl(230, 20%, 30%);
+  --accent: hsl(190, 100%, 45%);
+  --success: hsl(150, 70%, 40%);
+  --warning: hsl(35, 100%, 50%);
+  --danger: hsl(0, 85%, 60%);
+
+  --bg-main: hsl(230, 30%, 98%);
+  --bg-card: hsl(0, 0%, 100%);
+  --border-color: hsl(230, 20%, 90%);
+
+  --text-main: hsl(230, 20%, 20%);
+  --text-muted: hsl(230, 10%, 45%);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: blur(10px);
+}
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', Roboto, sans-serif;
-  background-color: #f5f5f5;
-  color: #333;
+  font-family: 'Outfit', 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 700;
+  color: var(--secondary);
+  letter-spacing: -0.02em;
 }
 
 h2 {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: 3rem;
+  margin-bottom: 2rem;
+  font-size: 2rem;
 }
 
-form {
-  max-width: 600px;
+/* Common Card/Form Wrapper */
+.premium-card {
+  max-width: 650px;
   margin: 2rem auto;
-  padding: 2rem;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.form-field {
-  margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-}
-
-input[type="text"],
-input[type="number"],
-input[type="date"],
-select {
+/* Material Field Overrides */
+.mat-mdc-form-field {
   width: 100%;
-  padding: 0.5rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  margin-bottom: 0.5rem;
 }
 
-input[type="checkbox"] {
-  margin-right: 0.5rem;
+.mat-mdc-raised-button.mat-primary {
+  --mdc-filled-button-container-color: var(--primary);
+  border-radius: var(--radius-md) !important;
+  padding: 0 2rem !important;
+  height: 48px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 14px 0 hsla(230, 85%, 60%, 0.39) !important;
 }
 
-button[type="submit"] {
-  display: block;
-  margin-top: 1.5rem;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
+/* Micro-animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-button[type="submit"]:hover {
-  background-color: #0056b3;
+.animate-up {
+  animation: fadeInUp 0.5s ease forwards;
 }

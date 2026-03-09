@@ -60,113 +60,143 @@ interface Execution {
 @Component({
   selector: 'app-execution-history',
   template: `
-    <div class="history-container">
-      <h1>Historial de Ejecuciones</h1>
+    <div class="history-container animate-up">
+      <header class="page-header">
+        <h1>Historial de Ejecuciones</h1>
+        <p class="subtitle">Registro completo de procesos orquestados en la infraestructura</p>
+      </header>
 
-      <!-- Estadísticas -->
-      <div *ngIf="stats" class="stats-section">
-        <div class="stat-card total">
-          <span class="stat-number">{{ stats.total }}</span>
-          <span class="stat-label">Total</span>
+      <!-- Estadísticas Premium -->
+      <div *ngIf="stats" class="stats-grid">
+        <div class="premium-stat total">
+          <div class="stat-content">
+            <span class="value">{{ stats.total }}</span>
+            <span class="label">Total Ejecuciones</span>
+          </div>
+          <mat-icon class="stat-icon">inventory_2</mat-icon>
         </div>
-        <div class="stat-card queued">
-          <span class="stat-number">{{ stats.queued }}</span>
-          <span class="stat-label">En Cola</span>
+        <div class="premium-stat queued">
+          <div class="stat-content">
+            <span class="value">{{ stats.queued }}</span>
+            <span class="label">En Cola</span>
+          </div>
+          <mat-icon class="stat-icon">hourglass_empty</mat-icon>
         </div>
-        <div class="stat-card running">
-          <span class="stat-number">{{ stats.running }}</span>
-          <span class="stat-label">Ejecutando</span>
+        <div class="premium-stat running">
+          <div class="stat-content">
+            <span class="value">{{ stats.running }}</span>
+            <span class="label">En Proceso</span>
+          </div>
+          <div class="pulse-dot"></div>
         </div>
-        <div class="stat-card success">
-          <span class="stat-number">{{ stats.success }}</span>
-          <span class="stat-label">Exitosas</span>
+        <div class="premium-stat success">
+          <div class="stat-content">
+            <span class="value">{{ stats.success }}</span>
+            <span class="label">Completadas OK</span>
+          </div>
+          <mat-icon class="stat-icon success-icon">check_circle</mat-icon>
         </div>
-        <div class="stat-card failed">
-          <span class="stat-number">{{ stats.failed }}</span>
-          <span class="stat-label">Fallidas</span>
+        <div class="premium-stat failed">
+          <div class="stat-content">
+            <span class="value">{{ stats.failed }}</span>
+            <span class="label">Fallidas</span>
+          </div>
+          <mat-icon class="stat-icon error-icon">report_problem</mat-icon>
         </div>
       </div>
 
-      <!-- Filtros -->
-      <div class="filters-section">
-        <input
-          #filterInput
-          type="text"
-          placeholder="Buscar por DAG ID..."
-          (keyup)="applyFilter(filterInput.value)"
-          class="filter-input"
-        />
-        <button mat-raised-button color="primary" (click)="loadExecutions()" class="refresh-button">
-          Actualizar
+      <!-- Filtros y Acciones -->
+      <div class="actions-bar">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Filtrar por DAG ID</mat-label>
+          <input matInput #filterInput (keyup)="applyFilter(filterInput.value)" placeholder="Ej: dag_limpieza_datos...">
+          <mat-icon matPrefix>search</mat-icon>
+        </mat-form-field>
+        
+        <button mat-raised-button color="primary" (click)="loadExecutions()" class="refresh-btn">
+          <mat-icon>refresh</mat-icon>
+          Sincronizar
         </button>
       </div>
 
-      <!-- Loading -->
-      <div *ngIf="loading" class="loading">
-        <p>Cargando historial...</p>
+      <!-- Loading State -->
+      <div *ngIf="loading" class="state-container">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Actualizando registros...</p>
       </div>
 
-      <!-- Error -->
-      <div *ngIf="!loading && error" class="error-message">
+      <!-- Error State -->
+      <div *ngIf="!loading && error" class="state-container error">
+        <mat-icon>error_outline</mat-icon>
         <p>{{ error }}</p>
+        <button mat-stroked-button color="warn" (click)="loadExecutions()">Reintentar</button>
       </div>
 
       <!-- Tabla de Ejecuciones -->
-      <div *ngIf="!loading && executions.length > 0" class="table-wrapper">
-        <table mat-table [dataSource]="filteredExecutions" class="executions-table">
+      <div *ngIf="!loading && executions.length > 0" class="premium-table-container">
+        <table mat-table [dataSource]="filteredExecutions" class="premium-table">
           
-          <!-- ID Column -->
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef> ID </th>
-            <td mat-cell *matCellDef="let exec"> {{exec.id}} </td>
+            <td mat-cell *matCellDef="let exec"> 
+              <span class="id-badge">#{{exec.id}}</span>
+            </td>
           </ng-container>
 
-          <!-- DAG ID Column -->
           <ng-container matColumnDef="dagId">
             <th mat-header-cell *matHeaderCellDef> DAG ID </th>
-            <td mat-cell *matCellDef="let exec" class="dag-id"> {{exec.dagId}} </td>
+            <td mat-cell *matCellDef="let exec"> 
+              <div class="dag-info">
+                <strong>{{exec.dagId}}</strong>
+                <span>Run ID: {{exec.dagRunId | slice:0:12}}...</span>
+              </div>
+            </td>
           </ng-container>
 
-          <!-- Status Column -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef> Estado </th>
             <td mat-cell *matCellDef="let exec">
-              <span class="status-badge" [ngClass]="'status-' + exec.status">
+              <span class="status-pill" [ngClass]="'status-' + exec.status">
                 {{ exec.status }}
               </span>
             </td>
           </ng-container>
 
-          <!-- Created Column -->
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef> Creado </th>
-            <td mat-cell *matCellDef="let exec" class="date"> {{exec.createdAt | date: 'short'}} </td>
+            <td mat-cell *matCellDef="let exec" class="date-cell">
+               <div class="date-stacked">
+                 <strong>{{exec.createdAt | date: 'dd MMM, yyyy'}}</strong>
+                 <span>{{exec.createdAt | date: 'HH:mm:ss'}}</span>
+               </div>
+            </td>
           </ng-container>
 
-          <!-- Started Column -->
           <ng-container matColumnDef="startedAt">
             <th mat-header-cell *matHeaderCellDef> Iniciado </th>
-            <td mat-cell *matCellDef="let exec" class="date"> {{exec.startedAt | date: 'short'}} </td>
+            <td mat-cell *matCellDef="let exec" class="date-cell">
+              {{exec.startedAt ? (exec.startedAt | date: 'shortTime') : '-'}}
+            </td>
           </ng-container>
 
-          <!-- Completed Column -->
           <ng-container matColumnDef="completedAt">
             <th mat-header-cell *matHeaderCellDef> Completado </th>
-            <td mat-cell *matCellDef="let exec" class="date"> {{exec.completedAt | date: 'short'}} </td>
+            <td mat-cell *matCellDef="let exec" class="date-cell">
+              {{exec.completedAt ? (exec.completedAt | date: 'shortTime') : '-'}}
+            </td>
           </ng-container>
 
-          <!-- Actions Column -->
           <ng-container matColumnDef="acciones">
             <th mat-header-cell *matHeaderCellDef> Acciones </th>
-            <td mat-cell *matCellDef="let row" class="mat-column-acciones">
-              <button mat-button color="primary" (click)="viewMonitor(row.id)" [disabled]="row.status === 'success' || row.status === 'failed'">
-                MONITORIZAR
+            <td mat-cell *matCellDef="let row" class="actions-cell">
+              <button mat-icon-button color="primary" matTooltip="Monitor" (click)="viewMonitor(row.id)" [disabled]="row.status === 'success' || row.status === 'failed'">
+                <mat-icon>visibility</mat-icon>
               </button>
-              <button mat-button (click)="viewDetails(row.id)">
-                DETALLES
+              <button mat-icon-button color="accent" matTooltip="Detalles" (click)="viewDetails(row.id)">
+                <mat-icon>analytics</mat-icon>
               </button>
-              <button mat-button color="warn" (click)="deleteExecution(row.id)">
-                ELIMINAR
+              <button mat-icon-button color="warn" matTooltip="Eliminar" (click)="deleteExecution(row.id)">
+                <mat-icon>delete_outline</mat-icon>
               </button>
             </td>
           </ng-container>
@@ -177,176 +207,235 @@ interface Execution {
       </div>
 
       <!-- Sin datos -->
-      <div *ngIf="!loading && executions.length === 0" class="no-data">
-        <p>No hay ejecuciones registradas aún.</p>
+      <div *ngIf="!loading && executions.length === 0" class="empty-state">
+        <mat-icon>history</mat-icon>
+        <p>No se encontraron registros de ejecución.</p>
         <button mat-raised-button color="primary" [routerLink]="['/informes']">
-          → Crear una nueva ejecución
+          Lanzar Primer Proceso
         </button>
       </div>
     </div>
   `,
   styles: [`
     .history-container {
-      padding: 2rem;
-      max-width: 1400px;
+      padding: 3rem 2rem;
+      max-width: 1500px;
       margin: 0 auto;
     }
 
-    h1 {
-      margin-bottom: 2rem;
-      color: #333;
-    }
-
-    .stats-section {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-
-    .stat-card {
-      padding: 1rem;
-      border-radius: 8px;
+    .page-header {
+      margin-bottom: 3.5rem;
       text-align: center;
-      color: white;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .premium-stat {
+      background: var(--bg-card);
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .premium-stat.total { border-left: 4px solid var(--primary); }
+    .premium-stat.queued { border-left: 4px solid var(--warning); }
+    .premium-stat.running { border-left: 4px solid var(--accent); }
+    .premium-stat.success { border-left: 4px solid var(--success); }
+    .premium-stat.failed { border-left: 4px solid var(--danger); }
+
+    .stat-content {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
     }
 
-    .stat-card.total { background: #1976d2; }
-    .stat-card.queued { background: #ff9800; }
-    .stat-card.running { background: #2196f3; }
-    .stat-card.success { background: #4caf50; }
-    .stat-card.failed { background: #f44336; }
-
-    .stat-number {
-      font-size: 28px;
-      font-weight: bold;
+    .stat-content .value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--secondary);
     }
 
-    .stat-label {
-      font-size: 12px;
+    .stat-content .label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .filters-section {
+    .stat-icon {
+      color: var(--border-color);
+      font-size: 2.5rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      opacity: 0.5;
+    }
+
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(79, 93, 227, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(79, 93, 227, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(79, 93, 227, 0); }
+    }
+
+    /* Actions Bar */
+    .actions-bar {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
+      justify-content: space-between;
       align-items: center;
+      margin-bottom: 2rem;
+      gap: 1.5rem;
     }
 
-    .filter-input {
+    .search-field {
       flex: 1;
-      min-width: 250px;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 14px;
+      max-width: 500px;
     }
 
-    .refresh-button {
-      height: 44px; /* Matches input height with padding */
+    .refresh-btn {
+      height: 56px !important;
+      padding: 0 1.5rem !important;
+      border-radius: var(--radius-md) !important;
     }
 
-    .loading, .error-message, .no-data {
-      text-align: center;
-      padding: 3rem 1rem;
-      font-size: 16px;
+    /* Table Styling */
+    .premium-table-container {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      border: 1px solid var(--border-color);
     }
 
-    .error-message {
-      color: #d32f2f;
-      background-color: #ffebee;
-      border-radius: 4px;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-
-    .executions-table {
+    .premium-table {
       width: 100%;
-      background: white;
-    }
-
-    .mat-header-row {
-      background-color: #f5f5f5;
     }
 
     .mat-header-cell {
-      font-weight: bold;
-      color: #333;
-      padding: 1rem;
+      background: var(--bg-main);
+      color: var(--secondary);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      padding: 1.25rem !important;
     }
 
     .mat-cell {
-      padding: 1rem;
-      border-bottom: 1px solid #ddd;
+      padding: 1.25rem !important;
+      border-bottom: 1px solid var(--bg-main);
     }
 
     .mat-row:hover {
-      background-color: #f9f9f9;
+      background: hsla(230, 85%, 60%, 0.02);
     }
 
-    .dag-id {
-      font-weight: 500;
-      color: #1976d2;
+    .id-badge {
+      background: var(--bg-main);
+      color: var(--primary);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-weight: 700;
     }
 
-    .status-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: bold;
-      color: white;
+    .dag-info {
+      display: flex;
+      flex-direction: column;
     }
 
-    .status-queued { background: #ff9800; }
-    .status-running { background: #2196f3; }
-    .status-success { background: #4caf50; }
-    .status-failed { background: #f44336; }
-
-    .date {
-      font-size: 12px;
-      color: #666;
+    .dag-info strong {
+      color: var(--text-main);
+      font-size: 0.95rem;
     }
 
-    .mat-column-acciones {
-      display: flex !important;
-      flex-direction: row !important;
+    .dag-info span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-success { background: #d1e7dd; color: #0f5132; }
+    .status-failed { background: #f8d7da; color: #842029; }
+    .status-running { background: #cfe2ff; color: #084298; }
+    .status-queued { background: #fff3cd; color: #856404; }
+
+    .date-stacked {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .date-stacked strong { font-size: 0.85rem; }
+    .date-stacked span { font-size: 0.75rem; color: var(--text-muted); }
+
+    .actions-cell {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    /* States */
+    .state-container, .empty-state {
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      gap: 12px; /* Espacio uniforme entre botones */
-      min-width: 380px; /* Garantiza espacio para los tres textos */
-      white-space: nowrap; /* Evita que el texto de los botones se rompa */
+      padding: 6rem 2rem;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      gap: 1.5rem;
+      text-align: center;
     }
 
-    .mat-column-acciones button {
-      flex-shrink: 0;
+    .empty-state mat-icon {
+      font-size: 4rem;
+      width: 4rem;
+      height: 4rem;
+      color: var(--border-color);
     }
 
-    .action-btn {
-      font-size: 14px;
-    }
-
-    .no-data button {
-      margin-top: 1rem;
-    }
-
-    @media (max-width: 768px) {
-      .stats-section {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .executions-table th, .executions-table td {
-        padding: 0.5rem;
-        font-size: 12px;
-      }
+    @media (max-width: 900px) {
+      .actions-bar { flex-direction: column; align-items: stretch; }
+      .search-field { max-width: none; }
     }
   `]
 })

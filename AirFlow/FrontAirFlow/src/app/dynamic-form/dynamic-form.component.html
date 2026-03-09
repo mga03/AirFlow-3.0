@@ -1,47 +1,61 @@
-<h2 *ngIf="template">{{ template.description }}</h2>
+<h2 *ngIf="template" class="animate-up">{{ template.description }}</h2>
 
-<form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="material-form">
+<form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="premium-card animate-up">
 
   <div *ngFor="let field of template.fields" class="form-field">
 
     <ng-container [ngSwitch]="field.type">
 
       <!-- STRING -->
-      <mat-form-field *ngSwitchCase="'string'" appearance="fill" class="full-width">
+      <mat-form-field *ngSwitchCase="'string'" appearance="outline" class="full-width">
         <mat-label>{{ field.label }}</mat-label>
-        <input matInput type="text" [formControlName]="field.name" />
+        <input matInput type="text" [formControlName]="field.name" placeholder="Ingrese {{ field.label }}..." />
+        <mat-icon matPrefix *ngIf="field.name.includes('name')">person</mat-icon>
+        <mat-icon matPrefix *ngIf="field.name.includes('mail')">email</mat-icon>
       </mat-form-field>
 
       <!-- NUMBER -->
-      <mat-form-field *ngSwitchCase="'number'" appearance="fill" class="full-width">
+      <mat-form-field *ngSwitchCase="'number'" appearance="outline" class="full-width">
         <mat-label>{{ field.label }}</mat-label>
         <input matInput type="number" [formControlName]="field.name" />
+        <mat-icon matPrefix>tag</mat-icon>
       </mat-form-field>
 
-      <!-- DATE (usa input nativo, no mat-datepicker) -->
-      <mat-form-field *ngSwitchCase="'date'" appearance="fill" class="full-width">
+      <!-- DATE -->
+      <mat-form-field *ngSwitchCase="'date'" appearance="outline" class="full-width">
         <mat-label>{{ field.label }}</mat-label>
         <input matInput type="date" [formControlName]="field.name" />
+        <mat-icon matPrefix>calendar_today</mat-icon>
       </mat-form-field>
 
       <!-- BOOLEAN -->
-      <mat-checkbox *ngSwitchCase="'boolean'" [formControlName]="field.name">
-        {{ field.label }}
-      </mat-checkbox>
+      <div *ngSwitchCase="'boolean'" class="checkbox-container">
+        <mat-checkbox [formControlName]="field.name" color="primary">
+          {{ field.label }}
+        </mat-checkbox>
+      </div>
 
       <!-- SELECT -->
-      <mat-form-field *ngSwitchCase="'select'" appearance="fill" class="full-width">
+      <mat-form-field *ngSwitchCase="'select'" appearance="outline" class="full-width">
         <mat-label>{{ field.label }}</mat-label>
         <mat-select [formControlName]="field.name">
-          <mat-option *ngFor="let opt of field.options" [value]="opt">{{ opt }}</mat-option>
+          <mat-option *ngFor="let opt of field.options" [value]="opt">
+            {{ opt }}
+          </mat-option>
         </mat-select>
+        <mat-icon matPrefix>list</mat-icon>
       </mat-form-field>
 
     </ng-container>
 
   </div>
 
-  <button mat-raised-button color="primary" type="submit">Enviar</button>
+  <div class="form-actions">
+    <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">
+      <mat-icon>send</mat-icon>
+      Ejecutar Proceso
+    </button>
+  </div>
 </form>
 
 <section *ngIf="executions?.length" class="executions-list">
@@ -73,8 +87,8 @@
       </div>
 
       <div class="execution-actions">
-        <button *ngIf="exec.status === 'queued' || exec.status === 'running'" 
-                mat-button color="accent" (click)="viewMonitor(exec.id)">
+        <button *ngIf="exec.status === 'queued' || exec.status === 'running'" mat-button color="accent"
+          (click)="viewMonitor(exec.id)">
           Ver Monitor
         </button>
         <button mat-button color="primary" (click)="viewDetails(exec.id)">

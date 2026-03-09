@@ -47,152 +47,248 @@ interface Template {
 @Component({
   selector: 'app-list-templates',
   template: `
-    <div class="templates-container">
-      <h1>Catálogo de Informes Disponibles</h1>
-      <p class="subtitle">Selecciona un informe para ejecutar</p>
+    <div class="templates-container animate-up">
+      <header class="page-header">
+        <h1>Catálogo de Informes</h1>
+        <p class="subtitle">Selecciona una plantilla preconfigurada para iniciar tu flujo de trabajo</p>
+      </header>
 
-      <div *ngIf="loading" class="loading">
-        <p>Cargando informes...</p>
+      <div *ngIf="loading" class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Sincronizando con el servidor...</p>
       </div>
 
-      <div *ngIf="!loading && error" class="error-message">
-        <p>Error al cargar los informes: {{ error }}</p>
+      <div *ngIf="!loading && error" class="error-container">
+        <mat-icon>error_outline</mat-icon>
+        <p>Error al sincronizar informes: {{ error }}</p>
+        <button mat-stroked-button color="warn" (click)="loadTemplates()">Reintentar</button>
       </div>
 
-      <div *ngIf="!loading && !error && templates.length === 0" class="no-data">
-        <p>No hay informes disponibles en este momento.</p>
+      <div *ngIf="!loading && !error && templates.length === 0" class="empty-container">
+        <mat-icon>inventory_2</mat-icon>
+        <p>No se encontraron plantillas disponibles para tu perfil.</p>
       </div>
 
       <div class="templates-grid" *ngIf="!loading && templates.length > 0">
-        <mat-card *ngFor="let template of templates" class="template-card">
+        <mat-card *ngFor="let template of templates" class="template-card" (click)="selectTemplate(template.name)">
+          <div class="card-glow"></div>
           <mat-card-header>
-            <h2 class="template-title">{{ template.reportName }}</h2>
+            <div mat-card-avatar class="template-icon">
+              <mat-icon>description</mat-icon>
+            </div>
+            <mat-card-title>{{ template.reportName }}</mat-card-title>
+            <mat-card-subtitle>Template: {{ template.name }}</mat-card-subtitle>
           </mat-card-header>
 
           <mat-card-content>
             <p class="template-description">{{ template.description }}</p>
-            <div class="template-info">
-              <span class="info-label">Campos:</span>
-              <span class="info-value">{{ template.fields?.length || 0 }}</span>
-            </div>
           </mat-card-content>
 
-          <mat-card-actions>
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="selectTemplate(template.name)"
-              class="action-button"
-            >
-              Ver Formulario
-            </button>
-            <button
-              mat-button
-              color="accent"
-              (click)="showDetails(template)"
-              class="secondary-button"
-            >
-              Detalles
-            </button>
-          </mat-card-actions>
+          <mat-card-footer>
+            <div class="template-meta">
+              <div class="meta-item">
+                <mat-icon>tune</mat-icon>
+                <span>{{ template.fields?.length || 0 }} Parámetros</span>
+              </div>
+              <div class="meta-tag">Configurado</div>
+            </div>
+            <div class="card-actions">
+              <button mat-button class="btn-details" (click)="$event.stopPropagation(); showDetails(template)">
+                DETALLES
+              </button>
+              <button mat-raised-button color="primary" class="btn-execute">
+                EJECUTAR
+                <mat-icon>play_arrow</mat-icon>
+              </button>
+            </div>
+          </mat-card-footer>
         </mat-card>
       </div>
     </div>
   `,
   styles: [`
     .templates-container {
-      padding: 2rem;
-      max-width: 1200px;
+      padding: 3rem 2rem;
+      max-width: 1300px;
       margin: 0 auto;
     }
 
-    h1 {
+    .page-header {
+      margin-bottom: 4rem;
       text-align: center;
-      color: #333;
+    }
+
+    h1 {
+      font-size: 2.5rem;
       margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .subtitle {
-      text-align: center;
-      color: #999;
-      margin-bottom: 2rem;
-      font-size: 14px;
+      color: var(--text-muted);
+      font-size: 1.1rem;
     }
 
-    .loading, .error-message, .no-data {
-      text-align: center;
-      padding: 3rem 1rem;
-      font-size: 16px;
+    .loading-state, .error-container, .empty-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5rem 2rem;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      gap: 1.5rem;
     }
 
-    .error-message {
-      color: #d32f2f;
-      background-color: #ffebee;
-      border-radius: 4px;
+    .error-container mat-icon, .empty-container mat-icon {
+      font-size: 3rem;
+      width: 3rem;
+      height: 3rem;
+      color: var(--text-muted);
     }
 
     .templates-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 2.5rem;
     }
 
     .template-card {
+      position: relative;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
       cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      border-left: 4px solid #1976d2;
+      background: var(--bg-card);
+      padding: 0;
     }
 
     .template-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+      transform: translateY(-12px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
     }
 
-    .template-title {
-      margin: 0;
-      font-size: 18px;
-      color: #1976d2;
+    .card-glow {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, hsla(230, 85%, 60%, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .template-card:hover .card-glow {
+      opacity: 1;
+    }
+
+    .template-card mat-card-header {
+      padding: 1.5rem;
+      background: rgba(245, 247, 251, 0.5);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .template-icon {
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(79, 93, 227, 0.3);
+    }
+
+    mat-card-title {
+      font-size: 1.25rem !important;
+      font-weight: 700 !important;
+      color: var(--secondary);
+    }
+
+    mat-card-subtitle {
+      color: var(--text-muted) !important;
+      font-size: 0.85rem !important;
+      margin-top: 4px;
+    }
+
+    mat-card-content {
+      padding: 1.5rem !important;
+      min-height: 100px;
     }
 
     .template-description {
-      color: #666;
-      margin: 0.5rem 0 0 0;
+      color: var(--text-main);
+      line-height: 1.6;
+      font-size: 0.95rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
-    .template-info {
+    mat-card-footer {
+      padding: 1rem 1.5rem 1.5rem !important;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .template-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid #eee;
-      font-size: 12px;
+      margin-bottom: 1.5rem;
     }
 
-    .info-label {
-      font-weight: bold;
-      color: #999;
-    }
-
-    .info-value {
-      color: #1976d2;
-      font-weight: bold;
-    }
-
-    mat-card-actions {
+    .meta-item {
       display: flex;
-      gap: 0.5rem;
-      padding: 1rem;
-      background-color: #fafafa;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: 500;
     }
 
-    .action-button {
+    .meta-item mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .meta-tag {
+      padding: 4px 10px;
+      background: var(--bg-main);
+      color: var(--primary);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn-details {
       flex: 1;
+      font-weight: 600 !important;
+      letter-spacing: 0.5px;
+      border-radius: var(--radius-md) !important;
+      border: 1px solid var(--border-color) !important;
     }
 
-    .secondary-button {
-      flex: 0.5;
+    .btn-execute {
+      flex: 1.5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
     }
 
     @media (max-width: 600px) {
