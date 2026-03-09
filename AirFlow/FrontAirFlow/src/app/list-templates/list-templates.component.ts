@@ -56,7 +56,7 @@ interface Template {
       </div>
 
       <div *ngIf="!loading && error" class="error-message">
-        <p>⚠️ Error al cargar los informes: {{ error }}</p>
+        <p>Error al cargar los informes: {{ error }}</p>
       </div>
 
       <div *ngIf="!loading && !error && templates.length === 0" class="no-data">
@@ -210,7 +210,7 @@ export class ListTemplatesComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
   /**
    * Ciclo de vida: Inicialización

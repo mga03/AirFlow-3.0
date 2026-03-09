@@ -20,38 +20,34 @@
           <p class="status-text">{{ getStatusDescription(execution.status) }}</p>
         </div>
       </div>
-      <button 
-        *ngIf="execution.status === 'queued' || execution.status === 'running'"
-        mat-raised-button color="primary" 
-        [disabled]="synchronizing"
-        (click)="syncStatus()"
-        class="sync-button">
+      <button *ngIf="execution.status === 'queued' || execution.status === 'running'" mat-raised-button color="primary"
+        [disabled]="synchronizing" (click)="syncStatus()" class="sync-button">
         {{ synchronizing ? 'Sincronizando...' : 'Sincronizar' }}
       </button>
     </div>
 
-    <p *ngIf="syncMessage" class="sync-message" [ngClass]="syncMessage.includes('✓') ? 'success' : 'error'">
+    <p *ngIf="syncMessage" class="sync-message" [ngClass]="syncMessage.includes('sincronizado') ? 'success' : 'error'">
       {{ syncMessage }}
     </p>
 
     <!-- TIMELINE -->
     <div class="timeline">
       <div class="timeline-item">
-        <div class="timeline-marker">📅</div>
+        <div class="timeline-marker">FECHA</div>
         <div class="timeline-content">
           <strong>Creado:</strong> {{ execution.createdAt | date:'medium' }} ({{ getAge() }})
         </div>
       </div>
 
       <div *ngIf="execution.startedAt" class="timeline-item">
-        <div class="timeline-marker">🏃</div>
+        <div class="timeline-marker">INICIO</div>
         <div class="timeline-content">
           <strong>Iniciado:</strong> {{ execution.startedAt | date:'medium' }}
         </div>
       </div>
 
       <div *ngIf="execution.completedAt" class="timeline-item">
-        <div class="timeline-marker">✅</div>
+        <div class="timeline-marker">FIN</div>
         <div class="timeline-content">
           <strong>Completado:</strong> {{ execution.completedAt | date:'medium' }}
           <span *ngIf="execution.startedAt" class="duration">(Duración: {{ getDuration() }})</span>
@@ -129,13 +125,15 @@
         <div *ngIf="activeSection === 'result'" class="section-content">
           <div *ngIf="execution.result" class="result-json">
             <pre [ngClass]="{ 'large-json': isLargeJson(execution.result) }">{{ execution.result | json }}</pre>
-            <button mat-button color="primary" (click)="copyToClipboard(JSON.stringify(execution.result), 'result')" class="copy-full-btn">
+            <button mat-button color="primary" (click)="copyToClipboard(JSON.stringify(execution.result), 'result')"
+              class="copy-full-btn">
               <span class="material-icons">content_copy</span>
               {{ copyMessage['result'] ? 'Copiado' : 'Copiar resultado' }}
             </button>
           </div>
           <p *ngIf="!execution.result" class="empty-message">
-            No hay resultado disponible ({{ execution.status === 'running' ? 'en progreso' : execution.status === 'queued' ? 'no iniciada' : '' }})
+            No hay resultado disponible ({{ execution.status === 'running' ? 'en progreso' : execution.status ===
+            'queued' ? 'no iniciada' : '' }})
           </p>
         </div>
       </div>
@@ -157,7 +155,8 @@
             </button>
           </div>
           <p *ngIf="!execution.logs" class="empty-message">
-            No hay logs disponibles ({{ execution.status === 'running' ? 'en progreso' : execution.status === 'queued' ? 'no iniciada' : '' }})
+            No hay logs disponibles ({{ execution.status === 'running' ? 'en progreso' : execution.status === 'queued' ?
+            'no iniciada' : '' }})
           </p>
         </div>
       </div>

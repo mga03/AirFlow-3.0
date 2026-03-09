@@ -96,8 +96,8 @@ interface Execution {
           (keyup)="applyFilter(filterInput.value)"
           class="filter-input"
         />
-        <button mat-button (click)="loadExecutions()" class="refresh-button">
-          🔄 Actualizar
+        <button mat-raised-button color="primary" (click)="loadExecutions()" class="refresh-button">
+          Actualizar
         </button>
       </div>
 
@@ -108,65 +108,71 @@ interface Execution {
 
       <!-- Error -->
       <div *ngIf="!loading && error" class="error-message">
-        <p>⚠️ {{ error }}</p>
+        <p>{{ error }}</p>
       </div>
 
       <!-- Tabla de Ejecuciones -->
       <div *ngIf="!loading && executions.length > 0" class="table-wrapper">
-        <table class="executions-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>DAG ID</th>
-              <th>Estado</th>
-              <th>Creado</th>
-              <th>Iniciado</th>
-              <th>Completado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let exec of filteredExecutions">
-              <td>{{ exec.id }}</td>
-              <td class="dag-id">{{ exec.dagId }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="'status-' + exec.status">
-                  {{ exec.status }}
-                </span>
-              </td>
-              <td class="date">{{ exec.createdAt | date: 'short' }}</td>
-              <td class="date">{{ exec.startedAt | date: 'short' }}</td>
-              <td class="date">{{ exec.completedAt | date: 'short' }}</td>
-              <td class="actions">
-                <button
-                  mat-icon-button
-                  (click)="viewMonitor(exec.id)"
-                  title="Ver Monitor"
-                  [disabled]="exec.status === 'success' || exec.status === 'failed'"
-                  class="action-btn"
-                >
-                  📊
-                </button>
-                <button
-                  mat-icon-button
-                  (click)="viewDetails(exec.id)"
-                  title="Ver Detalles"
-                  class="action-btn"
-                >
-                  👁️
-                </button>
-                <button
-                  mat-icon-button
-                  color="warn"
-                  (click)="deleteExecution(exec.id)"
-                  title="Eliminar"
-                  class="action-btn"
-                >
-                  🗑️
-                </button>
-              </td>
-            </tr>
-          </tbody>
+        <table mat-table [dataSource]="filteredExecutions" class="executions-table">
+          
+          <!-- ID Column -->
+          <ng-container matColumnDef="id">
+            <th mat-header-cell *matHeaderCellDef> ID </th>
+            <td mat-cell *matCellDef="let exec"> {{exec.id}} </td>
+          </ng-container>
+
+          <!-- DAG ID Column -->
+          <ng-container matColumnDef="dagId">
+            <th mat-header-cell *matHeaderCellDef> DAG ID </th>
+            <td mat-cell *matCellDef="let exec" class="dag-id"> {{exec.dagId}} </td>
+          </ng-container>
+
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Estado </th>
+            <td mat-cell *matCellDef="let exec">
+              <span class="status-badge" [ngClass]="'status-' + exec.status">
+                {{ exec.status }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Created Column -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef> Creado </th>
+            <td mat-cell *matCellDef="let exec" class="date"> {{exec.createdAt | date: 'short'}} </td>
+          </ng-container>
+
+          <!-- Started Column -->
+          <ng-container matColumnDef="startedAt">
+            <th mat-header-cell *matHeaderCellDef> Iniciado </th>
+            <td mat-cell *matCellDef="let exec" class="date"> {{exec.startedAt | date: 'short'}} </td>
+          </ng-container>
+
+          <!-- Completed Column -->
+          <ng-container matColumnDef="completedAt">
+            <th mat-header-cell *matHeaderCellDef> Completado </th>
+            <td mat-cell *matCellDef="let exec" class="date"> {{exec.completedAt | date: 'short'}} </td>
+          </ng-container>
+
+          <!-- Actions Column -->
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef> Acciones </th>
+            <td mat-cell *matCellDef="let row" class="mat-column-acciones">
+              <button mat-button color="primary" (click)="viewMonitor(row.id)" [disabled]="row.status === 'success' || row.status === 'failed'">
+                MONITORIZAR
+              </button>
+              <button mat-button (click)="viewDetails(row.id)">
+                DETALLES
+              </button>
+              <button mat-button color="warn" (click)="deleteExecution(row.id)">
+                ELIMINAR
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
       </div>
 
@@ -228,6 +234,7 @@ interface Execution {
       gap: 1rem;
       margin-bottom: 2rem;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .filter-input {
@@ -240,7 +247,7 @@ interface Execution {
     }
 
     .refresh-button {
-      padding: 0.75rem 1.5rem;
+      height: 44px; /* Matches input height with padding */
     }
 
     .loading, .error-message, .no-data {
@@ -263,22 +270,25 @@ interface Execution {
 
     .executions-table {
       width: 100%;
-      border-collapse: collapse;
       background: white;
     }
 
-    .executions-table thead {
+    .mat-header-row {
       background-color: #f5f5f5;
-      font-weight: bold;
     }
 
-    .executions-table th, .executions-table td {
-      padding: 0.75rem;
-      text-align: left;
+    .mat-header-cell {
+      font-weight: bold;
+      color: #333;
+      padding: 1rem;
+    }
+
+    .mat-cell {
+      padding: 1rem;
       border-bottom: 1px solid #ddd;
     }
 
-    .executions-table tbody tr:hover {
+    .mat-row:hover {
       background-color: #f9f9f9;
     }
 
@@ -306,13 +316,22 @@ interface Execution {
       color: #666;
     }
 
-    .actions {
-      display: flex;
-      gap: 0.25rem;
+    .mat-column-acciones {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 12px; /* Espacio uniforme entre botones */
+      min-width: 380px; /* Garantiza espacio para los tres textos */
+      white-space: nowrap; /* Evita que el texto de los botones se rompa */
+    }
+
+    .mat-column-acciones button {
+      flex-shrink: 0;
     }
 
     .action-btn {
-      font-size: 16px;
+      font-size: 14px;
     }
 
     .no-data button {
@@ -337,12 +356,13 @@ export class ExecutionHistoryComponent implements OnInit {
   stats: any = null;
   loading = true;
   error: string | null = null;
+  displayedColumns: string[] = ['id', 'dagId', 'status', 'createdAt', 'startedAt', 'completedAt', 'acciones'];
   filterText = '';
 
   constructor(
     private http: HttpClient,
     private router: Router
-  ) {}
+  ) { }
 
   /**
    * Ciclo de vida: Inicialización

@@ -105,7 +105,7 @@ export class ExecutionDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient
-  ) {}
+  ) { }
 
   /**
    * Ciclo de vida: Inicialización
@@ -174,12 +174,12 @@ export class ExecutionDetailComponent implements OnInit {
         next: (updated) => {
           this.execution = updated;
           this.synchronizing = false;
-          this.syncMessage = '✓ Estado sincronizado con Airflow';
+          this.syncMessage = 'Estado sincronizado con Airflow';
           setTimeout(() => this.syncMessage = '', 3000);
         },
         error: (err) => {
           this.synchronizing = false;
-          this.syncMessage = '✗ Error sincronizando: ' + (err?.error?.message || 'Unknown error');
+          this.syncMessage = 'Error sincronizando: ' + (err?.error?.message || 'Unknown error');
           setTimeout(() => this.syncMessage = '', 3000);
         }
       });

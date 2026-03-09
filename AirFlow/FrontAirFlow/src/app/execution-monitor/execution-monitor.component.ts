@@ -66,12 +66,13 @@ interface Execution {
         </button>
         <h1>Monitor de Ejecución #{{ executionId }}</h1>
         <button
-          mat-icon-button
+          mat-raised-button
+          color="primary"
           (click)="refreshNow()"
           [disabled]="loading"
           class="refresh-button"
         >
-          🔄
+          Actualizar
         </button>
       </div>
 
@@ -80,7 +81,7 @@ interface Execution {
       </div>
 
       <div *ngIf="error" class="error-message">
-        <p>⚠️ {{ error }}</p>
+        <p>{{ error }}</p>
         <button mat-raised-button (click)="loadExecution()">Reintentar</button>
       </div>
 
@@ -158,7 +159,7 @@ interface Execution {
             *ngIf="execution.logs"
             class="download-btn"
           >
-            ⬇️ Descargar Logs
+             Descargar Logs
           </button>
         </div>
       </div>
@@ -415,7 +416,7 @@ export class ExecutionMonitorComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient
-  ) {}
+  ) { }
 
   /**
    * Ciclo de vida: Inicialización

@@ -1,7 +1,7 @@
 <div class="dashboard-container">
   <!-- HEADER -->
   <div class="dashboard-header">
-    <h1>📊 Panel de Control</h1>
+    <h1>Panel de Control</h1>
     <p>Bienvenido a AirFlow Orchestration Dashboard</p>
   </div>
 
@@ -62,7 +62,7 @@
     <div class="templates-grid">
       <mat-card *ngFor="let template of templates" class="template-card" (click)="navigateToTemplate(template._id || template.name)">
         <mat-card-header>
-          <div mat-card-avatar class="template-avatar">📋</div>
+          <div mat-card-avatar class="template-avatar">DOC</div>
           <mat-card-title>{{ template.name || template.reportName }}</mat-card-title>
           <mat-card-subtitle>{{ template.fields?.length || 0 }} parámetros</mat-card-subtitle>
         </mat-card-header>
@@ -112,7 +112,7 @@
 
   <!-- EMPTY STATE -->
   <div *ngIf="!loading && recentExecutions?.length === 0 && templates?.length === 0" class="empty-state">
-    <div class="empty-icon">📁</div>
+    <div class="empty-icon">INFO</div>
     <h3>Sin datos</h3>
     <p>No hay templates ni ejecuciones disponibles</p>
     <button mat-raised-button color="primary" (click)="navigateToCreateReport()">

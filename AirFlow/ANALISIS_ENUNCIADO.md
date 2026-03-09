@@ -1,15 +1,15 @@
-# 🔍 ANÁLISIS: Brecha entre Actual vs Enunciado
+#  ANÁLISIS: Brecha entre Actual vs Enunciado
 
 ## Comparativa
 
-| Funcionalidad | Actual ❌ | Enunciado ✅ |
+| Funcionalidad | Actual  | Enunciado  |
 |---------------|----------|------------|
 | **Listado de informes** | Manual (ruta hardcodeada) | Catálogo dinámico completo |
 | **Historial de ejecuciones** | Submissions (simple) | Executions (detallado con estado) |
 | **Estado de ejecuciones** | No existe | Sincronizado con Airflow en tiempo real |
-| **Histórico persistente** | ✓ MySQL | ✓ MySQL mejorado |
+| **Histórico persistente** |  MySQL |  MySQL mejorado |
 | **Monitorización** | No existe | Monitor visual del estado |
-| **Trigger DAG** | ✓ Existe | ✓ Mejora: registra execution |
+| **Trigger DAG** |  Existe |  Mejora: registra execution |
 | **Sincronización Airflow** | Parcial | Completa: pull de estados |
 
 ---
@@ -81,7 +81,7 @@ Mejora de UX: Sidebar/Navbar con opciones de navegación
 ## Cambios en Flujo
 
 ### ACTUAL (Simple)
-1. Abre URL → formulario → envía → guardado en MySQL✅
+1. Abre URL → formulario → envía → guardado en MySQL
 
 ### ENUNCIADO (Completo)
 1. Abre Dashboard
@@ -101,11 +101,11 @@ Mejora de UX: Sidebar/Navbar con opciones de navegación
 
 ## Prioridades Implementacion
 
-1. ✅ Crear Execution entity (reemplaza Submission)
-2. ✅ Crear ExecutionsController y Service
-3. ✅ Mejorar DagsService (agregar getDagRunStatus, getDagRunLogs)
-4. ✅ Actualizar TemplatesController (ya funciona)
-5. ✅ Crear componentes Angular
-6. ✅ Actualizar routing
-7. ✅ Comentar JSDoc toda la arquitectura
+1.  Crear Execution entity (reemplaza Submission)
+2.  Crear ExecutionsController y Service
+3.  Mejorar DagsService (agregar getDagRunStatus, getDagRunLogs)
+4.  Actualizar TemplatesController (ya funciona)
+5.  Crear componentes Angular
+6.  Actualizar routing
+7.  Comentar JSDoc toda la arquitectura
 

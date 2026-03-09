@@ -1,6 +1,6 @@
-# 📚 GUÍA COMPLETA: ARQUITECTURA DEL PROYECTO
+#  GUÍA COMPLETA: ARQUITECTURA DEL PROYECTO
 
-## 📍 TABLA DE CONTENIDOS
+##  TABLA DE CONTENIDOS
 
 1. [Visión General](#visión-general)
 2. [Backend - Estructura NestJS](#backend---estructura-nestjs)
@@ -11,7 +11,7 @@
 
 ---
 
-## 🎯 Visión General
+##  Visión General
 
 Este proyecto es una **aplicación web de formularios dinámicos** que permite:
 
@@ -61,9 +61,9 @@ Este proyecto es una **aplicación web de formularios dinámicos** que permite:
 
 ---
 
-# 🔧 BACKEND - Estructura NestJS
+#  BACKEND - Estructura NestJS
 
-## 📁 Estructura de Carpetas
+##  Estructura de Carpetas
 
 ```
 BackAirFlow/src/
@@ -92,7 +92,7 @@ BackAirFlow/src/
         └── submission.entity.ts ← TypeORM Entity (mapeo a tabla MySQL)
 ```
 
-## 🏗️ Conceptos Clave de NestJS
+## ️ Conceptos Clave de NestJS
 
 ### 1️⃣ **Module** - Contenedor de funcionalidad
 
@@ -169,7 +169,7 @@ export class Submission {
 
 ---
 
-## 📋 Detalles de Cada Módulo
+##  Detalles de Cada Módulo
 
 ### **Módulo 1: Templates (CouchDB)**
 
@@ -304,7 +304,7 @@ Nota: Este módulo NO se utiliza actualmente en el frontend.
 
 ---
 
-## 🔌 Flujo de Información en NestJS
+##  Flujo de Información en NestJS
 
 ```
 Usuario hace REQUEST HTTP
@@ -357,9 +357,9 @@ Usuario hace REQUEST HTTP
 
 ---
 
-# 🎨 FRONTEND - Estructura Angular
+#  FRONTEND - Estructura Angular
 
-## 📁 Estructura de Carpetas
+##  Estructura de Carpetas
 
 ```
 FrontAirFlow/src/
@@ -379,7 +379,7 @@ FrontAirFlow/src/
         └── dynamic-form.component.css     ← Estilos CSS
 ```
 
-## 🏗️ Conceptos Clave de Angular
+## ️ Conceptos Clave de Angular
 
 ### 1️⃣ **NgModule** - Contenedor de la aplicación
 
@@ -455,7 +455,7 @@ const routes: Routes = [
 
 ---
 
-## 📋 Detalles del Componente Principal
+##  Detalles del Componente Principal
 
 ### **DynamicFormComponent**
 
@@ -486,7 +486,7 @@ Métodos principales:
 
 ---
 
-## 🔌 Flujo de Información en Angular
+##  Flujo de Información en Angular
 
 ```
 Usuario abre navegador
@@ -534,7 +534,7 @@ Se muestra lista de envíos
 
 ---
 
-# 🔄 FLUJO DE DATOS COMPLETO
+#  FLUJO DE DATOS COMPLETO
 
 ## Escenario: Usuario Carga Formulario de "Informe de Ventas"
 
@@ -881,13 +881,13 @@ async findAll(): Promise<Submission[]> {
 
 ### Paso 20: Usuario ve el formulario completado y lista
 
-✅ **Formulario renderizado**
-✅ **Datos guardados en MySQL**
-✅ **Lista de envíos mostrada**
+ **Formulario renderizado**
+ **Datos guardados en MySQL**
+ **Lista de envíos mostrada**
 
 ---
 
-# 💡 CÓMO FUNCIONA NODEJS/NESTJS
+#  CÓMO FUNCIONA NODEJS/NESTJS
 
 ## Conceptos Básicos
 
@@ -1088,7 +1088,7 @@ async function getTemplate(name: string) {
 
 ---
 
-# 💡 CÓMO FUNCIONA ANGULAR
+#  CÓMO FUNCIONA ANGULAR
 
 ## Concepto General
 
@@ -1407,7 +1407,7 @@ export class AppModule {}
 
 ---
 
-# 📊 RESUMEN VISUAL
+#  RESUMEN VISUAL
 
 ## Backend Flow
 
@@ -1508,23 +1508,23 @@ export class AppModule {}
 
 ---
 
-# 🎓 RESUMEN FINAL
+#  RESUMEN FINAL
 
 ## Backend (Node.js / NestJS)
 
-✅ **¿Qué hace?**
+ **¿Qué hace?**
 - Escucha solicitudes HTTP en puerto 3000
 - Conecta a CouchDB para obtener templates
 - Conecta a MySQL para guardar/recuperar envíos
 - Devuelve JSON al frontend
 
-✅ **Architektura**
+ **Architektura**
 - Modular: Dags, Templates (CouchDB), Submissions (MySQL)
 - Service → Controller: Lógica separada del routing
 - TypeORM: ORM para MySQL
 - nano: cliente para CouchDB
 
-✅ **No-bloqueante**
+ **No-bloqueante**
 - Usa async/await
 - Múltiples clientes pueden conectarse simultáneamente
 
@@ -1532,25 +1532,25 @@ export class AppModule {}
 
 ## Frontend (Angular)
 
-✅ **¿Qué hace?**
+ **¿Qué hace?**
 - Corre en el navegador
 - Solicita templates a NestJS
 - Construye formularios dinámicamente
 - Envía datos a NestJS para guardar
 - Muestra lista de envíos
 
-✅ **Arquitectura**
+ **Arquitectura**
 - Component-based: Componente raíz + DynamicFormComponent
 - Reactive Forms: Control total desde TypeScript
 - HttpClient: Comunicación con backend
 - Router: Navegación entre rutas
 
-✅ **Interactivo**
+ **Interactivo**
 - Event binding: (click), (ngSubmit)
 - Two-way binding: [(ngModel)]
 - Data binding: {{ datos }}, [propiedad]
 
 ---
 
-**¡Así funciona tu aplicación!** 🚀
+**¡Así funciona tu aplicación!** 
 
