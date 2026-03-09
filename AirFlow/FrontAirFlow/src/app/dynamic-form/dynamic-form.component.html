@@ -1,103 +1,80 @@
-<h2 *ngIf="template" class="animate-up">{{ template.description }}</h2>
+<div class="form-container animate-up">
+  <header class="section-header">
+    <h2 *ngIf="template">{{ template.description }}</h2>
+    <p class="subtitle" *ngIf="template">Configure los parámetros para lanzar la orquestación en Airflow</p>
+  </header>
 
-<form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="premium-card animate-up">
+  <form *ngIf="form" [formGroup]="form" (ngSubmit)="onSubmit()" class="premium-card">
 
-  <div *ngFor="let field of template.fields" class="form-field">
+    <div class="fields-grid">
+      <div *ngFor="let field of template.fields" class="form-field-wrapper">
 
-    <ng-container [ngSwitch]="field.type">
+        <ng-container [ngSwitch]="field.type">
 
-      <!-- STRING -->
-      <mat-form-field *ngSwitchCase="'string'" appearance="outline" class="full-width">
-        <mat-label>{{ field.label }}</mat-label>
-        <input matInput type="text" [formControlName]="field.name" placeholder="Ingrese {{ field.label }}..." />
-        <mat-icon matPrefix *ngIf="field.name.includes('name')">person</mat-icon>
-        <mat-icon matPrefix *ngIf="field.name.includes('mail')">email</mat-icon>
-      </mat-form-field>
+          <!-- STRING -->
+          <mat-form-field *ngSwitchCase="'string'" appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <input matInput type="text" [formControlName]="field.name" placeholder="Ej: {{ field.label }}..." />
+            <mat-icon matPrefix *ngIf="field.name.toLowerCase().includes('name')">person</mat-icon>
+            <mat-icon matPrefix *ngIf="field.name.toLowerCase().includes('mail')">email</mat-icon>
+            <mat-icon matPrefix
+              *ngIf="!field.name.toLowerCase().includes('name') && !field.name.toLowerCase().includes('mail')">text_fields</mat-icon>
+          </mat-form-field>
 
-      <!-- NUMBER -->
-      <mat-form-field *ngSwitchCase="'number'" appearance="outline" class="full-width">
-        <mat-label>{{ field.label }}</mat-label>
-        <input matInput type="number" [formControlName]="field.name" />
-        <mat-icon matPrefix>tag</mat-icon>
-      </mat-form-field>
+          <!-- NUMBER -->
+          <mat-form-field *ngSwitchCase="'number'" appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <input matInput type="number" [formControlName]="field.name" />
+            <mat-icon matPrefix>tag</mat-icon>
+          </mat-form-field>
 
-      <!-- DATE -->
-      <mat-form-field *ngSwitchCase="'date'" appearance="outline" class="full-width">
-        <mat-label>{{ field.label }}</mat-label>
-        <input matInput type="date" [formControlName]="field.name" />
-        <mat-icon matPrefix>calendar_today</mat-icon>
-      </mat-form-field>
+          <!-- DATE (Profesionalizado con MatDatepicker) -->
+          <mat-form-field *ngSwitchCase="'date'" appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <input matInput [matDatepicker]="picker" [formControlName]="field.name" placeholder="Seleccione fecha"
+              [min]="minDate" [max]="maxDate">
+            <mat-hint>DD/MM/YYYY</mat-hint>
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-icon matPrefix>calendar_today</mat-icon>
+            <mat-error *ngIf="form.get(field.name)?.hasError('matDatepickerParse')">Formato de fecha
+              inválido</mat-error>
+            <mat-error *ngIf="form.get(field.name)?.hasError('matDatepickerMin')">La fecha es demasiado
+              antigua</mat-error>
+            <mat-error *ngIf="form.get(field.name)?.hasError('matDatepickerMax')">La fecha excede el límite permitido
+              (2100)</mat-error>
+          </mat-form-field>
 
-      <!-- BOOLEAN -->
-      <div *ngSwitchCase="'boolean'" class="checkbox-container">
-        <mat-checkbox [formControlName]="field.name" color="primary">
-          {{ field.label }}
-        </mat-checkbox>
-      </div>
+          <!-- BOOLEAN -->
+          <div *ngSwitchCase="'boolean'" class="checkbox-wrapper">
+            <mat-checkbox [formControlName]="field.name" color="primary">
+              {{ field.label }}
+            </mat-checkbox>
+          </div>
 
-      <!-- SELECT -->
-      <mat-form-field *ngSwitchCase="'select'" appearance="outline" class="full-width">
-        <mat-label>{{ field.label }}</mat-label>
-        <mat-select [formControlName]="field.name">
-          <mat-option *ngFor="let opt of field.options" [value]="opt">
-            {{ opt }}
-          </mat-option>
-        </mat-select>
-        <mat-icon matPrefix>list</mat-icon>
-      </mat-form-field>
+          <!-- SELECT -->
+          <mat-form-field *ngSwitchCase="'select'" appearance="outline" class="full-width">
+            <mat-label>{{ field.label }}</mat-label>
+            <mat-select [formControlName]="field.name">
+              <mat-option *ngFor="let opt of field.options" [value]="opt">
+                {{ opt }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix>list</mat-icon>
+          </mat-form-field>
 
-    </ng-container>
+        </ng-container>
 
-  </div>
-
-  <div class="form-actions">
-    <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid">
-      <mat-icon>send</mat-icon>
-      Ejecutar Proceso
-    </button>
-  </div>
-</form>
-
-<section *ngIf="executions?.length" class="executions-list">
-  <h3>Ejecuciones recientes</h3>
-  <div class="executions-container">
-    <div *ngFor="let exec of executions" class="execution-card">
-      <div class="execution-header">
-        <strong>#{{ exec.id }}</strong>
-        <span class="execution-status" [ngClass]="'status-' + exec.status">
-          {{ exec.status | uppercase }}
-        </span>
-        <span class="execution-date">{{ exec.createdAt | date:'short' }}</span>
-      </div>
-
-      <div class="execution-details">
-        <p><strong>DAG:</strong> {{ exec.dagId }}</p>
-        <p><strong>Airflow Run ID:</strong> <code>{{ exec.dagRunId }}</code></p>
-        <p *ngIf="exec.completedAt"><strong>Completado:</strong> {{ exec.completedAt | date:'short' }}</p>
-      </div>
-
-      <div class="execution-parameters">
-        <strong>Parámetros:</strong>
-        <pre>{{ exec.parameters | json }}</pre>
-      </div>
-
-      <div *ngIf="exec.result" class="execution-result">
-        <strong>Resultado:</strong>
-        <pre>{{ exec.result | json }}</pre>
-      </div>
-
-      <div class="execution-actions">
-        <button *ngIf="exec.status === 'queued' || exec.status === 'running'" mat-button color="accent"
-          (click)="viewMonitor(exec.id)">
-          Ver Monitor
-        </button>
-        <button mat-button color="primary" (click)="viewDetails(exec.id)">
-          Ver Detalles
-        </button>
-        <button mat-button color="warn" (click)="deleteExecution(exec.id)">
-          Eliminar
-        </button>
       </div>
     </div>
-  </div>
-</section>
+
+    <div class="form-actions">
+      <button mat-raised-button color="primary" type="submit" [disabled]="!form.valid || submitting" class="submit-btn"
+        [class.loading]="submitting">
+        <mat-icon *ngIf="!submitting">send</mat-icon>
+        <mat-spinner diameter="20" *ngIf="submitting"></mat-spinner>
+        <span>{{ submitting ? 'Procesando...' : 'Ejecutar Proceso' }}</span>
+      </button>
+    </div>
+  </form>
+</div>
